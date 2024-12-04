@@ -59,23 +59,40 @@ class HTMLParser:
         
         return novels
     
-    def parse_search_results(self, html: str) -> List[Tuple[str, str, str]]:
-        """Parse search results from HTML."""
+    def parse_search_results(self, html_content: str) -> List[Tuple[str, str, str]]:
+        """Parse search results from HTML content."""
         results = []
-        try:
-            soup = BeautifulSoup(html, 'lxml')
-            for item in soup.find_all('div', class_='row'):
-                title_tag = item.find('h3', class_='truyen-title')
-                desc_tag = item.find('div', class_='excerpt')
-                
-                if title_tag and desc_tag:
-                    link = title_tag.find('a')
-                    if link:
-                        title = link.text.strip()
-                        url = link.get('href', '')
-                        description = desc_tag.text.strip()
-                        results.append((title, url, description))
-        except Exception as e:
-            print(f"Error parsing search results: {str(e)}")
+        soup = BeautifulSoup(html_content, 'lxml')
+        
+        main_content = soup.find("div", class_="col-truyen-main")
+        if not main_content:
+            return results
+            
+        rows = main_content.find_all("div", class_="row")
+        
+        for row in rows:
+            title_elem = row.find("h3", class_="truyen-title")
+            if title_elem:
+                link = title_elem.find("a")
+                if link:
+                    title = link.text.strip()
+                    href = link.get("href", "")
+                else:
+                    continue
+            else:
+                continue
+            
+            desc_elem = row.find("div", class_="excerpt")
+            description = desc_elem.text.strip() if desc_elem else "No description available"
+            
+            author_elem = row.find("span", class_="author")
+            if author_elem:
+                author = author_elem.text.strip()
+                description = f"Author: {author}\n{description}"
+            
+            if not href.startswith("http"):
+                href = f"https://novelfull.net{href}"
+            
+            results.append((title, href, description))
         
         return results

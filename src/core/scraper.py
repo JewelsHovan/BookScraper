@@ -20,15 +20,21 @@ class BookScraper:
         self.downloader = ChapterDownloader(max_workers=max_workers)
         self.novels: List[Book] = self.file_handler.load_books()
     
-    @cached(ttl=3600)  # Cache search results for 1 hour
-    def search_novels(self, query: str) -> List[tuple[str, str, str]]:
-        """Search for novels matching the query."""
-        url = self.url_builder.get_search_url(query)
+    # @cached(ttl=3600)  # Cache search results for 1 hour
+    def search_novels(self, query: str) -> List[Tuple[str, str, str]]:
+        """Search for novels matching query."""
+        search_url = self.url_builder.get_search_url(query)
+        
         with HTMLFetcher() as fetcher:
-            if html := fetcher.fetch(url):
-                return self.parser.parse_search_results(html)
+            content = fetcher.fetch(search_url)
+            if not content:
+                return []
+            
+            results = self.parser.parse_search_results(content)
+            return results
+
         return []
-    
+
     @cached(ttl=3600)  # Cache hot novels for 1 hour
     def get_hot_novels(self) -> List[Book]:
         """Fetch and update the list of hot novels."""
