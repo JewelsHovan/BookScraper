@@ -1,16 +1,16 @@
 # BookScraper
 
-A Python-based web scraper for downloading novels from various online sources. This project demonstrates modern Python practices with proper error handling, type hints, and modular design.
+A powerful command-line tool for downloading web novels with concurrent chapter downloading, caching, and comprehensive novel management.
 
 ## Features
 
-- Search for novels by title
-- Get list of hot/trending novels
-- Download complete novels chapter by chapter
-- Combine chapters into a single HTML file
-- Support for multiple novel websites (extensible)
-- Robust error handling and retry logic
-- Clean and modular code structure
+- 🚀 Concurrent chapter downloads for faster retrieval
+- 💾 File-based caching system
+- 🔍 Advanced search functionality
+- 📚 Novel library management
+- 🔥 Hot novels tracking
+- ⚙️ Configurable settings
+- 🛡️ Built-in rate limiting and retry mechanisms
 
 ## Installation
 
@@ -20,40 +20,73 @@ git clone https://github.com/yourusername/BookScraper.git
 cd BookScraper
 ```
 
-2. Create a virtual environment and activate it:
+2. Install dependencies:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e .
 ```
 
-3. Install dependencies:
+## CLI Commands
+
+The BookScraper CLI provides several commands for managing and downloading web novels:
+
+### Search Novels
+Search for novels by title or keywords:
 ```bash
-pip install -r requirements.txt
+bookscraper search "dragon" --detailed
 ```
+Options:
+- `--detailed`: Show extended information including descriptions
 
-## Usage
+### Download Novels
+Download chapters from a novel:
+```bash
+bookscraper download "martial-peak" --start 1 --end 10
+```
+Options:
+- `--start`: Starting chapter number (default: 1)
+- `--end`: Ending chapter number
+- `--workers`: Number of concurrent downloads (default: from config)
 
-```python
-from pathlib import Path
-from src.core.scraper import BookScraper
+### Hot Novels
+List trending/popular novels:
+```bash
+bookscraper hot --limit 20
+```
+Options:
+- `--limit`: Maximum number of novels to show
 
-# Initialize the scraper with output directory
-scraper = BookScraper(Path("./novels"))
+### List Library
+View your downloaded novels:
+```bash
+bookscraper list --detailed
+```
+Options:
+- `--detailed`: Show additional information about each novel
 
-# Search for novels
-results = scraper.search_novels("dragon")
-for title, url, description in results:
-    print(f"{title}: {description}")
+### Configure Settings
+Manage BookScraper settings:
+```bash
+bookscraper config set output_dir ~/my-novels
+bookscraper config get output_dir
+```
+Available settings:
+- `output_dir`: Novel download location
+- `max_workers`: Concurrent download threads
+- `cache_ttl`: Cache duration
+- `sites`: Website-specific settings
 
-# Get hot novels
-hot_novels = scraper.get_hot_novels()
-for novel in hot_novels:
-    print(novel.title)
+## Configuration
 
-# Download a book
-output_file = scraper.download_book("some-novel-name", start_chapter=1, end_chapter=10)
-if output_file:
-    print(f"Book downloaded to: {output_file}")
+The default configuration file is located at `~/.config/bookscraper/config.yaml`. You can modify these settings:
+
+```yaml
+output_dir: "~/novels"
+max_workers: 5
+cache_ttl: 3600
+sites:
+  novelfull:
+    base_url: "https://novelfull.net"
+    rate_limit: 1.0
 ```
 
 ## Project Structure
@@ -61,18 +94,30 @@ if output_file:
 ```
 BookScraper/
 ├── src/
-│   ├── core/
-│   │   ├── scraper.py     # Main scraper class
-│   │   └── parser.py      # HTML parsing logic
-│   ├── models/
-│   │   └── book.py        # Book data model
-│   └── utils/
-│       ├── url_builder.py # URL generation
-│       ├── file_handler.py# File operations
-│       └── html_fetcher.py# HTTP requests
-├── requirements.txt
-└── README.md
+│   ├── cli/           # CLI implementation
+│   ├── core/          # Core functionality
+│   ├── utils/         # Utility functions
+│   └── models/        # Data models
+├── tests/             # Test suite
+└── novels/            # Default download directory
 ```
+
+## Development
+
+- Python 3.9+ recommended
+- Uses virtual environment
+- Type hints throughout codebase
+- Modular and extensible architecture
+
+## Dependencies
+
+- requests: HTTP requests
+- beautifulsoup4: HTML parsing
+- lxml: XML/HTML processing
+- click: CLI framework
+- rich: Terminal formatting
+- tqdm: Progress bars
+- PyYAML: Configuration management
 
 ## Contributing
 
