@@ -35,11 +35,12 @@ class BookScraper:
 
         return []
 
-    @cached(ttl=3600)  # Cache hot novels for 1 hour
+    # @cached(ttl=3600)  # Cache hot novels for 1 hour
     def get_hot_novels(self) -> List[Book]:
         """Fetch and update the list of hot novels."""
         page = 1
         new_novels = []
+        previous_page_novels = None
         
         with HTMLFetcher() as fetcher:
             while True:
@@ -48,10 +49,13 @@ class BookScraper:
                     break
                 
                 novels = self.parser.parse_hot_novels(html)
-                if not novels or novels == new_novels:
-                    break
                 
+                # Break if no novels found or if we got the same novels as previous page
+                if not novels or novels == previous_page_novels:
+                    break
+                    
                 new_novels.extend(novels)
+                previous_page_novels = novels
                 page += 1
         
         # Convert to Book objects
