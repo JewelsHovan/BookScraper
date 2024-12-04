@@ -1,21 +1,26 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from pathlib import Path
+from tqdm import tqdm
 
 from src.models.book import Book
 from src.utils.url_builder import URLBuilder
 from src.utils.html_fetcher import HTMLFetcher
 from src.utils.file_handler import FileHandler
 from src.core.parser import HTMLParser, ParsedChapter
+from src.core.downloader import ChapterDownloader
+from src.utils.cache import cached
 
 class BookScraper:
     """Main scraper class that coordinates all components."""
     
-    def __init__(self, output_dir: Path):
+    def __init__(self, output_dir: Path, max_workers: int = 5):
         self.file_handler = FileHandler(output_dir)
         self.url_builder = URLBuilder()
         self.parser = HTMLParser()
+        self.downloader = ChapterDownloader(max_workers=max_workers)
         self.novels: List[Book] = self.file_handler.load_books()
     
+    @cached(ttl=3600)  # Cache search results for 1 hour
     def search_novels(self, query: str) -> List[tuple[str, str, str]]:
         """Search for novels matching the query."""
         url = self.url_builder.get_search_url(query)
@@ -24,6 +29,7 @@ class BookScraper:
                 return self.parser.parse_search_results(html)
         return []
     
+    @cached(ttl=3600)  # Cache hot novels for 1 hour
     def get_hot_novels(self) -> List[Book]:
         """Fetch and update the list of hot novels."""
         page = 1
@@ -55,7 +61,7 @@ class BookScraper:
         """Download a book's chapters and combine them into a single file."""
         book_name = book_name.lower().replace(' ', '-')
         
-        # Create a new book or get existing one
+        # Create or get book
         book = next((b for b in self.novels if b.formatted_title == book_name), None)
         if not book:
             book = Book(
@@ -64,15 +70,34 @@ class BookScraper:
             )
             self.novels.append(book)
         
+        # Setup progress bar
+        pbar = tqdm(total=(end_chapter - start_chapter + 1), desc=f"Downloading {book_name}")
+        
+        def update_progress(completed: int, total: int):
+            pbar.n = completed
+            pbar.refresh()
+        
+        # Download chapters
+        results = self.downloader.download_chapters(
+            book,
+            self.url_builder.get_chapter_url(book_name, "{chapter_number}"),
+            start_chapter,
+            end_chapter,
+            progress_callback=update_progress
+        )
+        
+        pbar.close()
+        
+        # Process results
         successful_chapters = []
-        with HTMLFetcher() as fetcher:
-            for chapter_num in range(start_chapter, end_chapter + 1):
-                url = self.url_builder.get_chapter_url(book_name, chapter_num)
-                if html := fetcher.fetch(url):
-                    if chapter := self.parser.parse_chapter(html, chapter_num):
-                        if self.file_handler.save_chapter(book, chapter_num, chapter.content):
-                            successful_chapters.append(chapter_num)
-                            print(f"Downloaded chapter {chapter_num}")
+        for result in results:
+            if result.content and result.validation and result.validation.is_valid:
+                if self.file_handler.save_chapter(book, result.chapter_number, result.content):
+                    successful_chapters.append(result.chapter_number)
+            else:
+                print(f"Chapter {result.chapter_number} failed: {result.error}")
+                if result.validation and result.validation.warnings:
+                    print(f"Warnings: {', '.join(result.validation.warnings)}")
         
         if successful_chapters:
             book.chapters = successful_chapters
