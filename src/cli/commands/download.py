@@ -23,6 +23,7 @@ def download(novel_name: str, start: int, end: int, workers: int, output: str, f
     console.print(f"[green]Downloading {novel_name} chapters {start}-{end}[/green]")
     
     output_file = scraper.download_book(novel_name, start, end)
+    print(output_file)
     
     if output_file:
         console.print(f"[green]Successfully downloaded to: {output_file}[/green]")

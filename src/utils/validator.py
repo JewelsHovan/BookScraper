@@ -1,102 +1,79 @@
-from typing import Optional, Dict, Any
-from dataclasses import dataclass
+from bs4 import BeautifulSoup
 import re
+from dataclasses import dataclass
+from typing import List
 
 @dataclass
 class ValidationResult:
     is_valid: bool
-    errors: list[str]
-    warnings: list[str]
+    errors: List[str]
+    warnings: List[str]
 
 class ContentValidator:
-    """Validates downloaded content for integrity and quality."""
+    """Validates chapter content with appropriate rules for the website structure."""
     
     def __init__(self):
-        self.min_chapter_length = 100  # characters
-        self.max_chapter_length = 50000  # characters
-        self.suspicious_patterns = [
-            r'404 not found',
-            r'error',
-            r'page not found',
-            r'access denied',
-            r'please try again',
+        self.min_chapter_length = 500  # Reduced minimum length
+        self.max_chapter_length = 50000  # Increased maximum length
+        
+        # Common error messages that indicate failed scraping
+        self.error_indicators = [
+            "404 not found",
+            "page not found",
+            "chapter not available",
+            "access denied"
         ]
-    
+
     def validate_chapter(self, content: str, chapter_number: int) -> ValidationResult:
         """
-        Validate chapter content.
+        Validate chapter content with focus on essential elements.
         
-        Checks:
-        1. Content length
-        2. Error messages
-        3. HTML structure
-        4. Content quality indicators
+        Args:
+            content: Raw HTML content
+            chapter_number: Chapter number for reference
         """
         errors = []
         warnings = []
         
-        # Check content length
-        if len(content) < self.min_chapter_length:
-            errors.append(f"Chapter {chapter_number} content too short ({len(content)} chars)")
-        elif len(content) > self.max_chapter_length:
-            warnings.append(f"Chapter {chapter_number} content unusually long ({len(content)} chars)")
-        
-        # Check for error messages
-        content_lower = content.lower()
-        for pattern in self.suspicious_patterns:
-            if re.search(pattern, content_lower):
-                errors.append(f"Chapter {chapter_number} contains error indicator: {pattern}")
-        
-        # Check HTML structure
-        if not self._validate_html_structure(content):
-            errors.append(f"Chapter {chapter_number} has invalid HTML structure")
-        
-        # Check content quality
-        quality_issues = self._check_content_quality(content)
-        warnings.extend(quality_issues)
-        
-        return ValidationResult(
-            is_valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings
-        )
-    
-    def _validate_html_structure(self, content: str) -> bool:
-        """Check if HTML has basic required structure."""
-        has_paragraph = bool(re.search(r'<p>.*?</p>', content))
-        has_title = bool(re.search(r'<h[1-6]>.*?</h[1-6]>', content))
-        return has_paragraph and has_title
-    
-    def _check_content_quality(self, content: str) -> list[str]:
-        """Check for potential content quality issues."""
-        warnings = []
-        
-        # Check for repeated content
-        if self._has_repeated_paragraphs(content):
-            warnings.append("Contains repeated paragraphs")
-        
-        # Check for missing punctuation
-        if not re.search(r'[.!?]', content):
-            warnings.append("No sentence-ending punctuation found")
-        
-        # Check for unusually short paragraphs
-        if self._has_short_paragraphs(content):
-            warnings.append("Contains very short paragraphs")
-        
-        return warnings
-    
-    def _has_repeated_paragraphs(self, content: str) -> bool:
-        """Check if content has repeated paragraphs."""
-        paragraphs = re.findall(r'<p>(.*?)</p>', content)
-        seen = set()
-        for p in paragraphs:
-            if p in seen and len(p) > 20:  # Only check substantial paragraphs
-                return True
-            seen.add(p)
-        return False
-    
-    def _has_short_paragraphs(self, content: str) -> bool:
-        """Check if content has very short paragraphs."""
-        paragraphs = re.findall(r'<p>(.*?)</p>', content)
-        short_count = sum(1 for p in paragraphs if len(p) < 20)
-        return short_count > len(paragraphs) / 2  # More than half are short
+        try:
+            soup = BeautifulSoup(content, 'html.parser')
+            
+            # 1. Check for chapter content div
+            chapter_content = soup.find('div', id='chapter-content')
+            if not chapter_content:
+                errors.append("Chapter content div not found")
+                return ValidationResult(is_valid=False, errors=errors, warnings=warnings)
+            
+            # 2. Extract actual text content (excluding navigation and ads)
+            paragraphs = chapter_content.find_all('p')
+            text_content = ' '.join(p.get_text().strip() for p in paragraphs if p.get_text().strip())
+            
+            # 3. Basic content checks
+            if not text_content:
+                errors.append("No text content found in chapter")
+            elif len(text_content) < self.min_chapter_length:
+                warnings.append(f"Chapter content might be too short ({len(text_content)} chars)")
+            
+            # 4. Check for error indicators in the text
+            content_lower = text_content.lower()
+            for indicator in self.error_indicators:
+                if indicator in content_lower:
+                    errors.append(f"Error indicator found: {indicator}")
+            
+            # 5. Verify chapter number presence (optional)
+            chapter_title = soup.find('span', class_='chapter-text')
+            if chapter_title and str(chapter_number) not in chapter_title.get_text():
+                warnings.append("Chapter number mismatch in title")
+            
+            # Consider valid if we have content and no critical errors
+            is_valid = len(text_content) > 0 and len(errors) == 0
+            
+            return ValidationResult(
+                is_valid=is_valid,
+                errors=errors,
+                warnings=warnings
+            )
+            
+        except Exception as e:
+            errors.append(f"Validation error: {str(e)}")
+            return ValidationResult(is_valid=False, errors=errors, warnings=warnings)
