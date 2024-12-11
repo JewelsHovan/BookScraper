@@ -5,6 +5,7 @@ import hashlib
 import time
 from functools import wraps
 import pickle
+import fickling
 
 class Cache:
     """Simple file-based cache with TTL support."""
@@ -34,7 +35,7 @@ class Cache:
             
         try:
             with open(cache_path, 'rb') as f:
-                data = pickle.load(f)
+                data = fickling.load(f)
                 
             if time.time() - data['timestamp'] > self.ttl:
                 cache_path.unlink()
