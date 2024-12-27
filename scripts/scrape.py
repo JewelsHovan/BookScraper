@@ -8,7 +8,7 @@ def download_chapters(book_name, start_chapter, end_chapter, folder):
     
     for chapter_number in range(start_chapter, end_chapter + 1):
         url = f"https://novelfull.com/{book_name}/chapter-{chapter_number}.html"
-        response = requests.get(url)
+        response = requests.get(url, timeout=60)
 
         # Check if the request was successful
         if response.status_code != 200:
