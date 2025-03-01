@@ -1,6 +1,6 @@
-import requests
 from bs4 import BeautifulSoup
 import os
+from security import safe_requests
 
 def download_chapters(book_name, start_chapter, end_chapter, folder):
     if not os.path.exists(folder):
@@ -8,7 +8,7 @@ def download_chapters(book_name, start_chapter, end_chapter, folder):
     
     for chapter_number in range(start_chapter, end_chapter + 1):
         url = f"https://novelfull.com/{book_name}/chapter-{chapter_number}.html"
-        response = requests.get(url)
+        response = safe_requests.get(url)
 
         # Check if the request was successful
         if response.status_code != 200:
