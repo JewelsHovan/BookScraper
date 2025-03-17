@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 import pickle
 from src.models.book import Book
+import fickling
 
 class FileHandler:
     """Handles file operations for the book scraper."""
@@ -23,7 +24,7 @@ class FileHandler:
         
         try:
             with open(self.books_file, 'rb') as f:
-                return pickle.load(f)
+                return fickling.load(f)
         except Exception as e:
             print(f"Error loading books: {str(e)}")
             return []

@@ -17,6 +17,7 @@ setup(
         'click>=8.1.7',
         'PyYAML>=6.0.1',
         'rich>=13.5.2',
+        "fickling>=0.1.3,~=0.1.0",
     ],
     entry_points={
         'console_scripts': [
