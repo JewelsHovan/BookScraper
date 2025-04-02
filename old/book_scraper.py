@@ -44,7 +44,7 @@ class BookScraper:
 
         while True:
             url = f"https://novelfull.net/hot-novel?page={page}"
-            response = requests.get(url)
+            response = requests.get(url, timeout=60)
 
             if response.status_code != 200:
                 print(f"Failed to download page {page} of the hot novels.")
@@ -105,7 +105,7 @@ class BookScraper:
 
         for chapter_number in range(start_chapter, end_chapter + 1):
             url = self.chapter_url_template.format(book_name=book_name, chapter_number=chapter_number)
-            response = requests.get(url)
+            response = requests.get(url, timeout=60)
 
             if response.status_code != 200:
                 print(f"Failed to download chapter {chapter_number} of {book_name}.")
@@ -196,7 +196,7 @@ class BookScraper:
         url = f"https://novelfull.net/search?keyword={search_term}"
 
         # Send a GET request to the URL
-        response = requests.get(url)
+        response = requests.get(url, timeout=60)
 
         # If the request was successful, parse the HTML content
         if response.status_code == 200:
@@ -229,7 +229,7 @@ class BookScraper:
         book_name = book_name.lower().replace(' ', '-')
         url = f"https://novelfull.net/{book_name}.html"
 
-        response = requests.get(url)
+        response = requests.get(url, timeout=60)
         if response.status_code != 200:
             print(f"Failed to download page for {book_name}.")
             return
@@ -247,7 +247,7 @@ class BookScraper:
 
     def download_book_cover(self, book_name):
         url = f"https://novelfull.net/{book_name}.html"
-        response = requests.get(url)
+        response = requests.get(url, timeout=60)
         print(response.status_code)
         if response.status_code != 200:
             print(f"Failed to download cover for {book_name}.")
@@ -257,7 +257,7 @@ class BookScraper:
         img_tag = book_div.find('img')
         if img_tag is not None:
             img_url = "https://novelfull.net" + img_tag['src']
-            img_response = requests.get(img_url)
+            img_response = requests.get(img_url, timeout=60)
             if img_response.status_code == 200:
                 with open(os.path.join(self.folder + f"/{book_name}", f"{book_name}_cover.jpg"), 'wb') as f:
                     f.write(img_response.content)
@@ -282,7 +282,7 @@ class BookScraper:
         url = f"https://novelfull.net/{novel_name}.html"
 
         # Send a GET request to the URL
-        response = requests.get(url)
+        response = requests.get(url, timeout=60)
 
         # If the request was successful, parse the HTML content
         if response.status_code == 200:
