@@ -5,11 +5,11 @@ import threading
 from dataclasses import dataclass
 from queue import Queue, Empty
 import time
-import random
 
 from src.utils.html_fetcher import HTMLFetcher
 from src.utils.validator import ContentValidator, ValidationResult
 from src.models.book import Book
+import secrets
 
 @dataclass
 class DownloadResult:
@@ -148,7 +148,7 @@ class ChapterDownloader:
                 last_error = str(e)
             
             # Exponential backoff with jitter
-            delay = (2 ** attempt) + (random.random() * 0.1)
+            delay = (2 ** attempt) + (secrets.SystemRandom().random() * 0.1)
             time.sleep(delay)
         
         # If we get here, all attempts failed
