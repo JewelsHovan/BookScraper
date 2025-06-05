@@ -17,6 +17,7 @@ setup(
         'click>=8.1.7',
         'PyYAML>=6.0.1',
         'rich>=13.5.2',
+        "security==1.3.1",
     ],
     entry_points={
         'console_scripts': [
