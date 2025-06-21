@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import pickle
+import fickling
 
 class Book:
     def __init__(self, title, folder_path):
@@ -30,7 +31,7 @@ class BookScraper:
         # Load the books from a file if it exists
         if os.path.exists('books.pkl'):
             with open('books.pkl', 'rb') as f:
-                self.novels = pickle.load(f)
+                self.novels = fickling.load(f)
 
     def save_books(self):
         # Save the books to a file
