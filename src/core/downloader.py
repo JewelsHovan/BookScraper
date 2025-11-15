@@ -10,6 +10,9 @@ import random
 from src.utils.html_fetcher import HTMLFetcher
 from src.utils.validator import ContentValidator, ValidationResult
 from src.models.book import Book
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 @dataclass
 class DownloadResult:
@@ -123,7 +126,7 @@ class ChapterDownloader:
                     content = fetcher.fetch(url)
                     
                     # Debug logging
-                    print(f"Chapter {chapter_number} - Content received: {bool(content)} - Length: {len(content) if content else 0}")
+                    logger.debug(f"Chapter {chapter_number} - Content received: {bool(content)} - Length: {len(content) if content else 0}")
                     
                     if not content or len(content.strip()) == 0:
                         raise ValueError(f"Empty or invalid content received for chapter {chapter_number}")
@@ -132,7 +135,7 @@ class ChapterDownloader:
                     
                     # Debug validation results
                     if validation.is_valid:
-                        print(f"Chapter {chapter_number} - Validation successful")
+                        logger.info(f"Chapter {chapter_number} - Validation successful")
                         return DownloadResult(
                             chapter_number=chapter_number,
                             content=content,
@@ -140,11 +143,11 @@ class ChapterDownloader:
                             error=None  # Explicitly set to None for successful downloads
                         )
                     else:
-                        print(f"Chapter {chapter_number} - Validation failed: {validation.errors}")
+                        logger.warning(f"Chapter {chapter_number} - Validation failed: {validation.errors}")
                         last_error = f"Content validation failed: {', '.join(validation.errors)}"
                     
             except Exception as e:
-                print(f"Chapter {chapter_number} - Attempt {attempt + 1} failed: {str(e)}")
+                logger.warning(f"Chapter {chapter_number} - Attempt {attempt + 1} failed: {str(e)}")
                 last_error = str(e)
             
             # Exponential backoff with jitter
@@ -152,7 +155,7 @@ class ChapterDownloader:
             time.sleep(delay)
         
         # If we get here, all attempts failed
-        print(f"Chapter {chapter_number} - All attempts failed. Last error: {last_error}")
+        logger.error(f"Chapter {chapter_number} - All attempts failed. Last error: {last_error}")
         return DownloadResult(
             chapter_number=chapter_number,
             content=None,

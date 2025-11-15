@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Broken Chapter - Invalid Content</title>
+</head>
+<body>
+    <div class="container">
+        <!-- Missing the expected 'chapter-content' id -->
+        <div id="wrong-container-id" class="content-wrapper">
+            <h2>This content won't be found by the parser</h2>
+            <p>The parser looks for id="chapter-content" but this div has a different id.</p>
+            <p>This simulates a broken or changed page structure.</p>
+        </div>
+        
+        <!-- Some random content that shouldn't be parsed -->
+        <div class="sidebar">
+            <h3>Related Novels</h3>
+            <ul>
+                <li><a href="/novel-1">Novel 1</a></li>
+                <li><a href="/novel-2">Novel 2</a></li>
+            </ul>
+        </div>
+        
+        <!-- Malformed HTML elements -->
+        <div class="broken-section">
+            <p>This paragraph is not properly closed
+            <div>Div inside unclosed paragraph</div>
+            </p>
+            <h2>Unclosed heading
+            <p>Random paragraph</p>
+        </div>
+        
+        <!-- Empty content area -->
+        <div id="chapter-content">
+            <!-- This div exists but has no actual content -->
+        </div>
+    </div>
+    
+    <!-- Unclosed tags -->
+    <div class="footer">
+        <p>Footer content
+    <!-- Missing closing tags for div and p -->
+</body>
+</html>

@@ -2,6 +2,10 @@ from typing import Optional, List, Tuple
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 @dataclass
 class ParsedChapter:
     """Represents a parsed chapter with its content."""
@@ -22,7 +26,7 @@ class HTMLParser:
             content_div = soup.find('div', id=self.content_id)
             
             if not content_div:
-                print(f"Could not find content div for chapter {chapter_number}")
+                logger.error(f"Could not find content div for chapter {chapter_number}")
                 return None
             
             # Extract title
@@ -40,7 +44,7 @@ class HTMLParser:
             return ParsedChapter(title=title, content=content, chapter_number=chapter_number)
             
         except Exception as e:
-            print(f"Error parsing chapter {chapter_number}: {str(e)}")
+            logger.error(f"Error parsing chapter {chapter_number}: {str(e)}")
             return None
     
     def parse_hot_novels(self, html: str) -> List[Tuple[str, str]]:
@@ -55,7 +59,7 @@ class HTMLParser:
                     url = link.get('href', '')
                     novels.append((title, url))
         except Exception as e:
-            print(f"Error parsing hot novels list: {str(e)}")
+            logger.error(f"Error parsing hot novels list: {str(e)}")
         
         return novels
     

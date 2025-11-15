@@ -1,7 +1,11 @@
 from pathlib import Path
 from typing import List, Optional
 import pickle
+
 from src.models.book import Book
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class FileHandler:
     """Handles file operations for the book scraper."""
@@ -25,7 +29,7 @@ class FileHandler:
             with open(self.books_file, 'rb') as f:
                 return pickle.load(f)
         except Exception as e:
-            print(f"Error loading books: {str(e)}")
+            logger.error(f"Error loading books: {str(e)}")
             return []
     
     def save_chapter(self, book: Book, chapter_number: int, content: str) -> bool:
@@ -38,7 +42,7 @@ class FileHandler:
             chapter_file.write_text(content)
             return True
         except Exception as e:
-            print(f"Error saving chapter {chapter_number}: {str(e)}")
+            logger.error(f"Error saving chapter {chapter_number}: {str(e)}")
             return False
     
     def combine_chapters(self, book: Book, start: int, end: int) -> Optional[Path]:
@@ -71,5 +75,5 @@ class FileHandler:
             return output_file
             
         except Exception as e:
-            print(f"Error combining chapters: {str(e)}")
+            logger.error(f"Error combining chapters: {str(e)}")
             return None

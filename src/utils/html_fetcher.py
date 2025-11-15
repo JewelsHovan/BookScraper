@@ -3,6 +3,10 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 class HTMLFetcher:
     """Handles HTTP requests with retry logic and proper error handling."""
     
@@ -25,7 +29,7 @@ class HTMLFetcher:
             response.raise_for_status()
             return response.text
         except requests.RequestException as e:
-            print(f"Error fetching {url}: {str(e)}")
+            logger.error(f"Error fetching {url}: {str(e)}")
             return None
     
     def __enter__(self):

@@ -9,6 +9,9 @@ from src.utils.file_handler import FileHandler
 from src.core.parser import HTMLParser, ParsedChapter
 from src.core.downloader import ChapterDownloader
 from src.utils.cache import cached
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class BookScraper:
     """Main scraper class that coordinates all components."""
@@ -105,9 +108,9 @@ class BookScraper:
                 if self.file_handler.save_chapter(book, result.chapter_number, result.content):
                     successful_chapters.append(result.chapter_number)
             else:
-                print(f"Chapter {result.chapter_number} failed: {result.error}")
+                logger.error(f"Chapter {result.chapter_number} failed: {result.error}")
                 if result.validation and result.validation.warnings:
-                    print(f"Warnings: {', '.join(result.validation.warnings)}")
+                    logger.warning(f"Warnings: {', '.join(result.validation.warnings)}")
         
         if successful_chapters:
             book.chapters = successful_chapters

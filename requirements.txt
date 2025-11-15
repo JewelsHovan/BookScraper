@@ -8,3 +8,13 @@ tenacity>=8.2.3  # For retry logic
 click>=8.1.7  # For CLI
 PyYAML>=6.0.1  # For configuration
 rich>=13.5.2  # For beautiful terminal output
+
+# Testing Dependencies
+pytest>=7.4.0  # Testing framework
+pytest-cov>=4.1.0  # Coverage plugin
+pytest-mock>=3.11.1  # Mocking support
+responses>=0.23.0  # HTTP request mocking
+pytest-asyncio>=0.21.0  # Async test support
+pytest-timeout>=2.1.0  # Test timeouts
+freezegun>=1.2.2  # Time/date mocking
+pytest-xdist>=3.3.0  # Parallel test execution
